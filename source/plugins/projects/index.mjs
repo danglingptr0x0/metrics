@@ -13,12 +13,10 @@ export default async function({login, data, imports, graphql, q, queries, accoun
     //Update limit if repositories projects were specified manually
     limit = Math.max(repositories.length, limit)
 
-    //Retrieve user owned projects from graphql api
+    //Retrieve user owned projects from graphql api (projectsV2 only - classic deprecated)
     console.debug(`metrics/compute/${login}/plugins > projects > querying api`)
-    const {[account]: {projects}} = await graphql(queries.projects["user.legacy"]({login, limit, account}))
     const {[account]: {projectsV2}} = await graphql(queries.projects.user({login, limit, account}))
-    projects.nodes.unshift(...projectsV2.nodes)
-    projects.totalCount += projectsV2.totalCount
+    const projects = {nodes: [...projectsV2.nodes], totalCount: projectsV2.totalCount}
 
     //Retrieve repositories projects from graphql api
     for (const identifier of repositories) {
@@ -36,16 +34,7 @@ export default async function({login, data, imports, graphql, q, queries, accoun
         catch (error) {
           console.debug(error)
         }
-        //Try projects classic
-        try {
-          console.debug(`metrics/compute/${login}/plugins > projects > falling back to projects classic for ${identifier}`)
-          ;({project} = (await graphql(queries.projects["repository.legacy"]({user, repository, id, account})))[account].repository)
-          if (project)
-            break
-        }
-        catch (error) {
-          console.debug(error)
-        }
+        //Projects classic deprecated - skipping fallback
       }
       if (!project)
         throw new Error(`Could not load project ${user}/${repository}`)
