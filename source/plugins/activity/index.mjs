@@ -53,6 +53,8 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             case "CommitCommentEvent": {
               if (!["created"].includes(payload.action))
                 return null
+              if (!payload.comment?.user?.login)
+                return null
               const {comment: {user: {login: user}, commit_id: sha, body: content}} = payload
               if (!imports.filters.text(user, ignored))
                 return null
@@ -82,6 +84,8 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             case "IssueCommentEvent": {
               if (!["created"].includes(payload.action))
                 return null
+              if (!payload.issue?.user?.login)
+                return null
               const {issue: {user: {login: user}, title, number}, comment: {body: content, performed_via_github_app: mobile}} = payload
               if (!imports.filters.text(user, ignored))
                 return null
@@ -90,6 +94,8 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             //Issue event
             case "IssuesEvent": {
               if (!["opened", "closed", "reopened"].includes(payload.action))
+                return null
+              if (!payload.issue?.user?.login)
                 return null
               const {action, issue: {user: {login: user}, title, number, body: content}} = payload
               if (!imports.filters.text(user, ignored))
@@ -132,6 +138,8 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             //Commented on a pull request
             case "PullRequestReviewCommentEvent": {
               if (!["created"].includes(payload.action))
+                return null
+              if (!payload.pull_request?.user?.login)
                 return null
               const {pull_request: {user: {login: user}, title, number}, comment: {body: content, performed_via_github_app: mobile}} = payload
               if (!imports.filters.text(user, ignored))
