@@ -113,6 +113,8 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             case "PullRequestEvent": {
               if (!["opened", "closed"].includes(payload.action))
                 return null
+              if (!payload.pull_request?.user?.login)
+                return null
               const {action, pull_request: {user: {login: user}, title, number, body: content, additions: added, deletions: deleted, changed_files: changed, merged}} = payload
               if (!imports.filters.text(user, ignored))
                 return null
@@ -120,6 +122,8 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             }
             //Reviewed a pull request
             case "PullRequestReviewEvent": {
+              if (!payload.pull_request?.user?.login)
+                return null
               const {review: {state: review}, pull_request: {user: {login: user}, number, title}} = payload
               if (!imports.filters.text(user, ignored))
                 return null
